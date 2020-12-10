@@ -90,6 +90,9 @@
 #elif CFG_TUSB_MCU == OPT_MCU_STM32L4
   #include "stm32l4xx.h"
 
+#elif CFG_TUSB_MCU == OPT_MCU_STM32L5
+  #include "stm32l5xx.h"
+
 #elif CFG_TUSB_MCU == OPT_MCU_CXD56
   // no header needed
 

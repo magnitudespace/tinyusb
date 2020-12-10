@@ -113,7 +113,8 @@
       (CFG_TUSB_MCU == OPT_MCU_STM32F0                          ) || \
       (CFG_TUSB_MCU == OPT_MCU_STM32F1 && defined(STM32F1_FSDEV)) || \
       (CFG_TUSB_MCU == OPT_MCU_STM32F3                          ) || \
-      (CFG_TUSB_MCU == OPT_MCU_STM32L0                          ) \
+      (CFG_TUSB_MCU == OPT_MCU_STM32L0                          ) || \
+      (CFG_TUSB_MCU == OPT_MCU_STM32L5                           ) \
     )
 
 // In order to reduce the dependance on HAL, we undefine this.
@@ -216,22 +217,26 @@ void dcd_init (uint8_t rhport)
   /* The RM mentions to use a special ordering of PDWN and FRES, but this isn't done in HAL.
    * Here, the RM is followed. */
 
-  for(uint32_t i = 0; i<200; i++) // should be a few us
-  {
-    asm("NOP");
-  }
-	// Perform USB peripheral reset
-  USB->CNTR = USB_CNTR_FRES | USB_CNTR_PDWN;
-  for(uint32_t i = 0; i<200; i++) // should be a few us
-  {
-    asm("NOP");
-  }
-  reg16_clear_bits(&USB->CNTR, USB_CNTR_PDWN);// Remove powerdown
-  // Wait startup time, for F042 and F070, this is <= 1 us.
-  for(uint32_t i = 0; i<200; i++) // should be a few us
-  {
-    asm("NOP");
-  }
+ //  for(uint32_t i = 0; i<200; i++) // should be a few us
+ //  {
+ //    asm("NOP");
+ //  }
+	// // Perform USB peripheral reset
+ //  USB->CNTR = USB_CNTR_FRES | USB_CNTR_PDWN;
+ //  for(uint32_t i = 0; i<200; i++) // should be a few us
+ //  {
+ //    asm("NOP");
+ //  }
+ //  reg16_clear_bits(&USB->CNTR, USB_CNTR_PDWN);// Remove powerdown
+ //  // Wait startup time, for F042 and F070, this is <= 1 us.
+ //  for(uint32_t i = 0; i<200; i++) // should be a few us
+ //  {
+ //    asm("NOP");
+ //  }
+
+  USB->CNTR =(uint16_t) USB_CNTR_FRES;
+
+
   USB->CNTR = 0; // Enable USB
   
   USB->BTABLE = DCD_STM32_BTABLE_BASE;
@@ -280,6 +285,8 @@ void dcd_int_enable (uint8_t rhport)
   __ISB();
 #if CFG_TUSB_MCU == OPT_MCU_STM32F0 || CFG_TUSB_MCU == OPT_MCU_STM32L0
   NVIC_EnableIRQ(USB_IRQn);
+#elif CFG_TUSB_MCU == OPT_MCU_STM32L5
+  NVIC_EnableIRQ(USB_FS_IRQn);
 #elif CFG_TUSB_MCU == OPT_MCU_STM32F3
   // Some STM32F302/F303 devices allow to remap the USB interrupt vectors from
   // shared USB/CAN IRQs to separate CAN and USB IRQs.
@@ -312,8 +319,10 @@ void dcd_int_disable(uint8_t rhport)
 {
   (void)rhport;
 
-#if CFG_TUSB_MCU == OPT_MCU_STM32F0 || CFG_TUSB_MCU == OPT_MCU_STM32L0
+#if CFG_TUSB_MCU == OPT_MCU_STM32F0 || CFG_TUSB_MCU == OPT_MCU_STM32L0 
   NVIC_DisableIRQ(USB_IRQn);
+#elif CFG_TUSB_MCU == OPT_MCU_STM32L5
+  NVIC_DisableIRQ(USB_FS_IRQn);
 #elif CFG_TUSB_MCU == OPT_MCU_STM32F3
   // Some STM32F302/F303 devices allow to remap the USB interrupt vectors from
   // shared USB/CAN IRQs to separate CAN and USB IRQs.

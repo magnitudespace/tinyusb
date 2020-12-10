@@ -83,6 +83,10 @@
   #include "stm32l0xx.h"
   #define PMA_LENGTH (1024u)
 
+#elif CFG_TUSB_MCU == OPT_MCU_STM32L5
+  #include "stm32l5xx.h"
+  #define PMA_LENGTH (1024u)
+      
 #else
   #error You are using an untested or unimplemented STM32 variant. Please update the driver.
   // This includes L1x0, L1x1, L1x2, L4x2 and L4x3, G1x1, G1x3, and G1x4
@@ -98,7 +102,7 @@
 // And for type-safety create a new macro for the volatile address of PMAADDR
 // The compiler should warn us if we cast it to a non-volatile type?
 // Volatile is also needed to prevent the optimizer from changing access to 32-bit (as 32-bit access is forbidden)
-static __IO uint16_t * const pma = (__IO uint16_t*)USB_PMAADDR;
+static __IO uint16_t * const pma = (__IO uint16_t*)USB_PMAADDR_NS;
 
 // prototypes
 static inline __IO uint16_t* pcd_ep_rx_cnt_ptr(USB_TypeDef * USBx, uint32_t bEpNum);
